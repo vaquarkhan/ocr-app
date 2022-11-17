@@ -45,7 +45,7 @@ export default class TextractCustomClient {
         const command = new StartDocumentAnalysisCommand(params);
 
         const data = await this._client.send(command);
-        this._logger.info(`Analyzed object ${objectName} through textract async`)
+        this._logger.info(`Analyzed object ${objectName} through textract async, job id: ${data.JobId}`)
         return data;
     }
 }

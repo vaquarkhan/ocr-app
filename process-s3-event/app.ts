@@ -4,6 +4,7 @@ import { v4 } from 'uuid';
 import DataStore from './utils/datastore';
 import TextractCustomClient from './utils/textract';
 import S3CustomClient from './utils/s3';
+import SqsCustomClient from './utils/sqs';
 
 const logger = new Logger();
 
@@ -17,6 +18,10 @@ const textractClient = new TextractCustomClient();
 // S3
 const s3Client = new S3CustomClient();
 
+// SQS
+const sqsAsyncQueueUrl = String(process.env.ASYNC_QUEUE_URL);
+const sqsClient = new SqsCustomClient(sqsAsyncQueueUrl)
+
 export async function processRecord(record: S3EventRecord) {
     // Fetch bucket and object name from the new S3 event record
     const bucketName = record.s3.bucket.name;
@@ -25,6 +30,13 @@ export async function processRecord(record: S3EventRecord) {
     // Create document with IN_PROGRESS status
     const documentId = v4(); // Generate random uuid
     await documentsDataStore.createDocument(documentId, bucketName, objectName);
+
+    // Send document to async queue
+    await sqsClient.send({
+        bucketName,
+        objectName,
+        documentId,
+    })
 
     // Analyze document using Textract
     const analysis = await textractClient.analyzeDocument(bucketName, objectName);

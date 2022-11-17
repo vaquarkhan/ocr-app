@@ -23,15 +23,29 @@ Resources:
         - !Ref AwsLayer
       Policies:
         # Give the Lambda service access to poll your DynamoDB Stream
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt AsyncJob.QueueName
         - AmazonDynamoDBFullAccess
         - AmazonTextractFullAccess
         - AmazonS3FullAccess
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: processS3Event
+          POWERTOOLS_SERVICE_NAME: ProcessS3EventFunction
           POWERTOOLS_METRICS_NAMESPACE: ocr-app
           LOG_LEVEL: INFO
           DOCS_TABLE: DocumentsTable
+          ASYNC_QUEUE_URL: !Ref AsyncJob # Gets SQS Queue URL
+      Events:
+        PdfS3Event:
+          Type: S3
+          Properties: 
+            Bucket: !Ref DocsToAnalyze
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .pdf
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -47,6 +61,44 @@ Resources:
           - '@aws-sdk/client-textract'
           - '@aws-sdk/client-s3'
 
+  ProcessSQSAsyncJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: process-sqs-async-job/
+      Handler: app.lambdaHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Tracing: Active
+      Layers:
+        - !Ref AwsLayer
+      Policies:
+        # Give the Lambda service access to poll your DynamoDB Stream
+        - AmazonTextractFullAccess
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: ProcessSQSAsyncJobFunction
+          POWERTOOLS_METRICS_NAMESPACE: ocr-app
+          LOG_LEVEL: INFO
+      Events:
+        SQSAsyncEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt AsyncJob.Arn
+            BatchSize: 10
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        # Sourcemap: true # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints: 
+        - app.ts
+        External:
+          - aws-sdk
+          - '@aws-lambda-powertools'
+
   AwsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -58,6 +110,12 @@ Resources:
         - nodejs16.x
     Metadata:
       BuildMethod: nodejs16.x
+
+  DocsToAnalyze:
+    Type: AWS::S3::Bucket
+
+  AsyncJob:
+    Type: AWS::SQS::Queue
 
   DocumentsTable:
     Type: AWS::DynamoDB::Table
@@ -74,6 +132,8 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_IMAGE
 
+    
+
 Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
@@ -86,3 +146,6 @@ Outputs:
   DocumentsTable:
     Description: "This is the table to store that progress of document analysis"
     Value: !GetAtt DocumentsTable.Arn
+  DocsToAnalyze:
+    Description: "This is the bucket used to analyze documents"
+    Value: !GetAtt DocsToAnalyze.Arn

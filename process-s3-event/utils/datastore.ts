@@ -1,15 +1,15 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import DynamoDB from 'aws-sdk/clients/dynamodb';
-import CustomDynamoClient from './dynamodb';
+import DynamoCustomClient from './dynamodb';
 
 export default class DataStore {
     private _logger = new Logger({ serviceName: "DataStore" });
-    private _client: CustomDynamoClient;
+    private _client: DynamoCustomClient;
     private _tableName: string;
 
 
     constructor(table = process.env.SAMPLE_TABLE) {
-        this._client = new CustomDynamoClient(table);
+        this._client = new DynamoCustomClient(table);
         this._tableName = String(table);
     }
 
