@@ -39,7 +39,7 @@ export async function processRecord(record: S3EventRecord) {
 /**
  *
  * @param {APIGatewayProxyEvent} event - API Gateway Lambda Proxy Input Format
- * @param {Context} object - Lambda $context variable
+ * @param {Context} context - Lambda $context variable
  *
  * @returns {APIGatewayProxyResult} object - API Gateway Lambda Proxy Output Format
  *

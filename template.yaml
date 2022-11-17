@@ -59,6 +59,21 @@ Resources:
     Metadata:
       BuildMethod: nodejs16.x
 
+  DocumentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: DocumentsTable
+      KeySchema:
+        - 
+          AttributeName: documentId
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: documentId
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
 Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
@@ -68,3 +83,6 @@ Outputs:
   ProcessS3EventFunctionIamRole:
     Description: "Implicit IAM Role created for Process S3 Event function"
     Value: !GetAtt ProcessS3EventFunctionRole.Arn
+  DocumentsTable:
+    Description: "This is the table to store that progress of document analysis"
+    Value: !GetAtt DocumentsTable.Arn
