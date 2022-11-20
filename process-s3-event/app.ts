@@ -2,8 +2,6 @@ import { APIGatewayProxyResult, Context, S3Event, S3EventRecord } from 'aws-lamb
 import { Logger } from '@aws-lambda-powertools/logger';
 import { v4 } from 'uuid';
 import DataStore from './utils/datastore';
-import TextractCustomClient from './utils/textract';
-import S3CustomClient from './utils/s3';
 import SqsCustomClient from './utils/sqs';
 
 const logger = new Logger();
@@ -12,15 +10,9 @@ const logger = new Logger();
 const docsTableName = String(process.env.DOCS_TABLE);
 const documentsDataStore = new DataStore(docsTableName);
 
-// Textract
-const textractClient = new TextractCustomClient();
-
-// S3
-const s3Client = new S3CustomClient();
-
 // SQS
 const sqsAsyncQueueUrl = String(process.env.ASYNC_QUEUE_URL);
-const sqsClient = new SqsCustomClient(sqsAsyncQueueUrl)
+const sqsClient = new SqsCustomClient()
 
 export async function processRecord(record: S3EventRecord) {
     // Fetch bucket and object name from the new S3 event record
@@ -32,20 +24,11 @@ export async function processRecord(record: S3EventRecord) {
     await documentsDataStore.createDocument(documentId, bucketName, objectName);
 
     // Send document to async queue
-    await sqsClient.send({
+    await sqsClient.send(sqsAsyncQueueUrl, {
         bucketName,
         objectName,
         documentId,
     })
-
-    // Analyze document using Textract
-    const analysis = await textractClient.analyzeDocument(bucketName, objectName);
-
-    // Store analysis in S3
-    await s3Client.putObject(bucketName, `${documentId}.json`, analysis);
-
-    // Mark document as completed in table
-    await documentsDataStore.markDocumentCompleted(documentId);
 }
 
 /**

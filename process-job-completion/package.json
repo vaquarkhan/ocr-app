@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "@aws-lambda-powertools/logger": "^1.4.1",
+        "@aws-sdk/client-s3": "^3.213.0",
         "@aws-sdk/client-textract": "^3.212.0",
         "aws-sdk": "2.1020.0",
         "esbuild": "^0.14.14"

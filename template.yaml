@@ -122,6 +122,8 @@ Resources:
             POWERTOOLS_SERVICE_NAME: ProcessJobCompletionFunction
             POWERTOOLS_METRICS_NAMESPACE: ocr-app
             LOG_LEVEL: INFO
+            DOCS_TABLE: DocumentsTable
+            OUTPUTS_TABLE: OutputTable
         Events:
           SQSJobCompleted:
             Type: SQS
@@ -139,6 +141,7 @@ Resources:
           External:
             - aws-sdk
             - '@aws-lambda-powertools'
+            - '@aws-sdk/client-s3'
             
   AwsLayer:
     Type: AWS::Serverless::LayerVersion
@@ -223,8 +226,24 @@ Resources:
         - AttributeName: documentId
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
-      StreamSpecification:
-        StreamViewType: NEW_IMAGE
+
+  OutputsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: DocumentsTable
+      KeySchema:
+        - 
+          AttributeName: documentId
+          KeyType: HASH
+        -
+          AttributeName: outputType
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: documentId
+          AttributeType: S
+        - AttributeName: outputType
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
 
     
 
@@ -252,6 +271,9 @@ Outputs:
   DocumentsTable:
     Description: "This is the table to store that progress of document analysis"
     Value: !GetAtt DocumentsTable.Arn
+  OutputsTable:
+    Description: "This is the table to store that analysis output of each document"
+    Value: !GetAtt OutputsTable.Arn
   DocsToAnalyze:
     Description: "This is the bucket used to analyze documents"
     Value: !GetAtt DocsToAnalyze.Arn

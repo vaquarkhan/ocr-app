@@ -1,7 +1,7 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { 
     TextractClient, AnalyzeDocumentCommand, StartDocumentAnalysisCommand,
-    StartDocumentAnalysisCommandInput, AnalyzeDocumentCommandInput } from '@aws-sdk/client-textract';
+    StartDocumentAnalysisCommandInput, AnalyzeDocumentCommandInput, GetDocumentAnalysisCommand, GetDocumentAnalysisCommandInput } from '@aws-sdk/client-textract';
 
 export default class TextractCustomClient {
     private _logger = new Logger({ serviceName: "TextractCustomClient" });
@@ -46,6 +46,19 @@ export default class TextractCustomClient {
 
         const data = await this._client.send(command);
         this._logger.info(`Analyzed object ${objectName} through textract async, job id: ${data.JobId}`)
+        return data;
+    }
+
+    async getAalyzeDocument(jobId: string, nextToken?: string) {
+        const features = ['FORMS'];
+        const params: GetDocumentAnalysisCommandInput = {
+            JobId: jobId,
+            NextToken: nextToken,
+        };
+        const command = new GetDocumentAnalysisCommand(params);
+
+        const data = await this._client.send(command);
+        this._logger.info(`Analyzed document with ${jobId} is returned`)
         return data;
     }
 }
