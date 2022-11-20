@@ -142,6 +142,7 @@ Resources:
             - aws-sdk
             - '@aws-lambda-powertools'
             - '@aws-sdk/client-s3'
+            - '@aws-sdk/client-textract'
             
   AwsLayer:
     Type: AWS::Serverless::LayerVersion
@@ -230,7 +231,7 @@ Resources:
   OutputsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: DocumentsTable
+      TableName: OutputsTable
       KeySchema:
         - 
           AttributeName: documentId
