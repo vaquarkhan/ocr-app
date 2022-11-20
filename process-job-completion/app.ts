@@ -1,8 +1,9 @@
-import { APIGatewayProxyResult, Context, S3Event, S3EventRecord, SQSEvent, SQSRecord } from 'aws-lambda';
+import { APIGatewayProxyResult, Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
 import TextractCustomClient from './utils/textract';
 import S3CustomClient from './utils/s3';
 import DataStore from './utils/datastore';
+import { ITextractResultsMessageModel } from './models/textract-results.model';
 
 const logger = new Logger();
 
@@ -19,18 +20,19 @@ const textractClient = new TextractCustomClient();
 const s3Client = new S3CustomClient();
 
 export async function processRecord(record: SQSRecord) {
-    const textractNotification: ITextractResultsModel = JSON.parse(record.body);
+    const textractNotification = JSON.parse(record.body);
+    const textractNotificationMessage: ITextractResultsMessageModel = JSON.parse(textractNotification.Message);
     logger.info(`Textract notification message: ${JSON.stringify(textractNotification)}`);
 
     // Check if process was successful
-    if (textractNotification.Message.Status === 'SUCCEEDED') {
+    if (textractNotificationMessage.Status === 'SUCCEEDED') {
 
-        const documentId = textractNotification.Message.JobTag;
-        const path = `${textractNotification.Message.DocumentLocation.S3ObjectName}.json`;
-        const bucket = textractNotification.Message.DocumentLocation.S3Bucket;
+        const documentId = textractNotificationMessage.JobTag;
+        const path = `${textractNotificationMessage.DocumentLocation.S3ObjectName}.json`;
+        const bucket = textractNotificationMessage.DocumentLocation.S3Bucket;
 
         // Fetch textract output from Textract
-        const analysis = await textractClient.getAalyzeDocument(textractNotification.Message.JobId);
+        const analysis = await textractClient.getAalyzeDocument(textractNotificationMessage.JobId);
 
         // Store analysis in S3
         await s3Client.putObject(bucket, path, analysis);

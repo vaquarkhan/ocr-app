@@ -50,7 +50,6 @@ export default class TextractCustomClient {
     }
 
     async getAalyzeDocument(jobId: string, nextToken?: string) {
-        const features = ['FORMS'];
         const params: GetDocumentAnalysisCommandInput = {
             JobId: jobId,
             NextToken: nextToken,

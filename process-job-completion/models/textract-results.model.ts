@@ -1,9 +1,9 @@
-interface ITextractResultsModel {
+export interface ITextractResultsModel {
     Message: ITextractResultsMessageModel
 }
 
 
-interface ITextractResultsMessageModel {
+export interface ITextractResultsMessageModel {
   JobId: string;
   Status: string;
   API: string;
@@ -12,7 +12,7 @@ interface ITextractResultsMessageModel {
   DocumentLocation: IDocumentLocation;
 }
 
-interface IDocumentLocation {
+export interface IDocumentLocation {
   S3ObjectName: string;
   S3Bucket: string;
 }
