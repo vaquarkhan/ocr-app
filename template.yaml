@@ -117,6 +117,7 @@ Resources:
           # Give the Lambda service access to poll your DynamoDB Stream
           - AmazonTextractFullAccess
           - AmazonS3FullAccess
+          - AmazonDynamoDBFullAccess
         Environment:
           Variables:
             POWERTOOLS_SERVICE_NAME: ProcessJobCompletionFunction
