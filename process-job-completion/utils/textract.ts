@@ -29,7 +29,7 @@ export default class TextractCustomClient {
         return data;
     }
 
-    async startAnalyzeDocument(bucketName: string, objectName: string, documentId: string, topicArn: string, roleArn: string) {
+    async startAnalyzeDocument(bucketName: string, objectName: string, documentId: string) {
         const features = ['FORMS'];
         const params: StartDocumentAnalysisCommandInput = {
             ClientRequestToken: documentId,
@@ -40,13 +40,8 @@ export default class TextractCustomClient {
                     Name: objectName,
                 },
             },
-            NotificationChannel: {
-                SNSTopicArn: topicArn,
-                RoleArn: roleArn,
-            },
             FeatureTypes: features,
         };
-        this._logger.info(`Start document analysis params: ${JSON.stringify(params)}`);
         const command = new StartDocumentAnalysisCommand(params);
 
         const data = await this._client.send(command);

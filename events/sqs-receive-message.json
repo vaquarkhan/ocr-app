@@ -3,7 +3,7 @@
       {
         "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
         "receiptHandle": "MessageReceiptHandle",
-        "body": "Hello from SQS!",
+        "body": "{\"documentId\":\"9e0c7620-37b6-47cf-96af-fe3ae1060dc8\",\"bucketName\":\"docs-to-analyze\",\"objectName\":\"OoPdfFormExample.pdf\"}",
         "attributes": {
           "ApproximateReceiveCount": "1",
           "SentTimestamp": "1523232000000",

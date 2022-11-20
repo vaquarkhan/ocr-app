@@ -4,17 +4,8 @@ import TextractCustomClient from './utils/textract';
 
 const logger = new Logger();
 
-// Textract
-const textractClient = new TextractCustomClient();
-const SNSTopicArn = String(process.env.JOB_COMPLETION_NOTIFICATION_TOPIC);
-const SNSRoleArn = String(process.env.JOB_COMPLETION_NOTIFICATION_ROLE);
-
-// const sqsClient = new SqsCustomClient(sqsAsyncQueueUrl)
-
 export async function processRecord(record: SQSRecord) {
-    logger.info(`Record body ${JSON.stringify(record.body)}`);    
-    const { bucketName, objectName, documentId } = JSON.parse(record.body);
-    return textractClient.startAnalyzeDocument(bucketName, objectName, documentId, SNSTopicArn, SNSRoleArn);
+    logger.info(JSON.stringify(record));
 }
 
 /**
