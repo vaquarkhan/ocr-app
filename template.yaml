@@ -123,7 +123,7 @@ Resources:
             POWERTOOLS_METRICS_NAMESPACE: ocr-app
             LOG_LEVEL: INFO
             DOCS_TABLE: DocumentsTable
-            OUTPUTS_TABLE: OutputTable
+            OUTPUTS_TABLE: OutputsTable
         Events:
           SQSJobCompleted:
             Type: SQS
