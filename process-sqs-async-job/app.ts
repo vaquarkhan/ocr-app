@@ -12,7 +12,7 @@ const SNSRoleArn = String(process.env.JOB_COMPLETION_NOTIFICATION_ROLE);
 // const sqsClient = new SqsCustomClient(sqsAsyncQueueUrl)
 
 export async function processRecord(record: SQSRecord) {
-    logger.info(`Record body ${JSON.stringify(record.body)}`);    
+    logger.info(`Record body ${JSON.stringify(record.body)}`);
     const { bucketName, objectName, documentId } = JSON.parse(record.body);
     return textractClient.startAnalyzeDocument(bucketName, objectName, documentId, SNSTopicArn, SNSRoleArn);
 }
@@ -26,9 +26,10 @@ export async function processRecord(record: SQSRecord) {
  *
  */
 export const lambdaHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult> => {
+    logger.info(`Event: ${JSON.stringify(event, null, 2)}`);
     let response: APIGatewayProxyResult;
     try {
-        for (const record of event.Records) {            
+        for (const record of event.Records) {
             logger.info(`Start processing SQS message record with message id: ${record.messageId}`);
             await processRecord(record);
         }
@@ -37,7 +38,7 @@ export const lambdaHandler = async (event: SQSEvent, context: Context): Promise<
             body: JSON.stringify({
                 message: 'S3 event records processed successfully',
             }),
-        };        
+        };
     } catch (error) {
         // Error handling
         response = {
