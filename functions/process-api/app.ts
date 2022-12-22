@@ -1,6 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult, Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { getDocumentById, getDocuments, getOutputs } from './services/documents.service';
+import { createDocument, getDocumentById, getDocuments, getOutputs } from './services/documents.service';
 
 const logger = new Logger();
 
@@ -38,8 +38,20 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
             }
 
             case '/documents': {
-                body = await getDocuments();
-                statusCode = 200;
+                switch (event.httpMethod) {
+                    case 'GET':
+                        body = await getDocuments();
+                        statusCode = 200;
+                        break;
+                    case 'POST':
+                        if (event.body) {
+                            const { keys } = JSON.parse(event.body);
+                            body = await createDocument(keys);
+                            statusCode = 200;
+                        }
+                    default:
+                        break;
+                }
                 break;
             }
 

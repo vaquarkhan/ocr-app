@@ -9,7 +9,9 @@
         "@aws-lambda-powertools/logger": "^0.6.0",
         "@aws-sdk/client-s3": "^3.211.0",
         "@aws-sdk/client-textract": "^3.211.0",
+        "amazon-textract-response-parser": "^0.2.0",
         "aws-sdk": "2.1255.0",
+        "fs": "^0.0.1-security",
         "uuid": "^9.0.0"
     },
     "scripts": {

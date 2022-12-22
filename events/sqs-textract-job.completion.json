@@ -3,7 +3,7 @@
       {
         "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
         "receiptHandle": "MessageReceiptHandle",
-        "body": "{\"Type\":\"Notification\",\"MessageId\":\"4d0b0155-2cf2-560f-a654-5aa13e9ad83f\",\"TopicArn\":\"arn:aws:sns:eu-central-1:874613073983:TextractJobCompletion\",\"Message\":\"{\\\"JobId\\\":\\\"86b2039000558978849396a355d8d71b5b3c799aaa871b67bd26a59b4185d715\\\",\\\"Status\\\":\\\"SUCCEEDED\\\",\\\"API\\\":\\\"StartDocumentAnalysis\\\",\\\"JobTag\\\":\\\"b7d8df0d-77b6-4d1a-84e6-c65d4f2e8e55\\\",\\\"Timestamp\\\":1668943912130,\\\"DocumentLocation\\\":{\\\"S3ObjectName\\\":\\\"OoPdfFormExample.pdf\\\",\\\"S3Bucket\\\":\\\"ocr-app-docstoanalyze-u6cs9o64ms4y\\\"}}\"}",
+        "body": "{\"Type\":\"Notification\",\"MessageId\":\"4d0b0155-2cf2-560f-a654-5aa13e9ad83f\",\"TopicArn\":\"arn:aws:sns:eu-central-1:874613073983:TextractJobCompletion\",\"Message\":\"{\\\"JobId\\\":\\\"f28c1f795d0a8881701e406e63e99b94c9d407884f63d8d6632114e19155fd59\\\",\\\"Status\\\":\\\"SUCCEEDED\\\",\\\"API\\\":\\\"StartDocumentAnalysis\\\",\\\"JobTag\\\":\\\"b7d8df0d-77b6-4d1a-84e6-c65d4f2e8e55\\\",\\\"Timestamp\\\":1668943912130,\\\"DocumentLocation\\\":{\\\"S3ObjectName\\\":\\\"OoPdfFormExample.pdf\\\",\\\"S3Bucket\\\":\\\"ocr-app-docstoanalyze-u6cs9o64ms4y\\\"}}\"}",
         "attributes": {
           "ApproximateReceiveCount": "1",
           "SentTimestamp": "1523232000000",

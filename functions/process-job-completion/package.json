@@ -15,8 +15,10 @@
         "@aws-lambda-powertools/logger": "^1.4.1",
         "@aws-sdk/client-s3": "^3.213.0",
         "@aws-sdk/client-textract": "^3.212.0",
+        "amazon-textract-response-parser": "^0.2.0",
         "aws-sdk": "2.1020.0",
-        "esbuild": "^0.14.14"
+        "esbuild": "^0.14.14",
+        "fs": "^0.0.1-security"
     },
     "devDependencies": {
         "@types/aws-lambda": "^8.10.92",

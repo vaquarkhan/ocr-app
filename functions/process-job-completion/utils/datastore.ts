@@ -3,10 +3,9 @@ import DynamoDB from 'aws-sdk/clients/dynamodb';
 import DynamoCustomClient from './dynamodb';
 
 export default class DataStore {
-    private _logger = new Logger({ serviceName: "DataStore" });
+    private _logger = new Logger({ serviceName: 'DataStore' });
     private _client: DynamoCustomClient;
     private _tableName: string;
-
 
     constructor(table = process.env.SAMPLE_TABLE) {
         this._client = new DynamoCustomClient(table);
@@ -20,11 +19,12 @@ export default class DataStore {
                 ':bucketNameValue': bucketName,
                 ':objectNameValue': objectName,
                 ':documentstatusValue': 'IN_PROGRESS',
-                ':documentCreatedOnValue': new Date().toISOString()
-            }, 
-            UpdateExpression: "SET bucketName = :bucketNameValue, objectName = :objectNameValue, documentStatus = :documentstatusValue, documentCreatedOn = :documentCreatedOnValue",
+                ':documentCreatedOnValue': new Date().toISOString(),
+            },
+            UpdateExpression:
+                'SET bucketName = :bucketNameValue, objectName = :objectNameValue, documentStatus = :documentstatusValue, documentCreatedOn = :documentCreatedOnValue',
             Key: {
-                "documentId": documentId
+                documentId: documentId,
             },
             TableName: this._tableName,
         };
@@ -38,11 +38,12 @@ export default class DataStore {
         var params: DynamoDB.DocumentClient.UpdateItemInput = {
             ExpressionAttributeValues: {
                 ':documentstatusValue': 'COMPLETED',
-                ':documentCompletedOnValue': new Date().toISOString()
-            }, 
-            UpdateExpression: "SET documentStatus = :documentstatusValue, documentCompletedOn = :documentCompletedOnValue",
+                ':documentCompletedOnValue': new Date().toISOString(),
+            },
+            UpdateExpression:
+                'SET documentStatus = :documentstatusValue, documentCompletedOn = :documentCompletedOnValue',
             Key: {
-                "documentId": documentId
+                documentId: documentId,
             },
             TableName: this._tableName,
         };
@@ -55,9 +56,9 @@ export default class DataStore {
         const data = await this._client.write({
             documentId,
             outputPath,
-            outputType
-        })
-        this._logger.info(`Created output for document id ${documentId}`);
+            outputType,
+        });
+        this._logger.info(`Created output type: ${outputType} for document id ${documentId}`);
         return data;
     }
 }
