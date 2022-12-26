@@ -53,7 +53,7 @@ Resources:
           POWERTOOLS_SERVICE_NAME: DocumentCreatedFunction
           POWERTOOLS_METRICS_NAMESPACE: ocr-app
           LOG_LEVEL: INFO
-          DOCS_TABLE: DocumentsTable
+          DOCS_TABLE: !Ref DocumentsTable
           ASYNC_QUEUE_URL: !Ref AsyncJob # Gets SQS Queue URL
       Events:
         DynamoDBEvent:
@@ -139,8 +139,8 @@ Resources:
             POWERTOOLS_SERVICE_NAME: ProcessJobCompletionFunction
             POWERTOOLS_METRICS_NAMESPACE: ocr-app
             LOG_LEVEL: INFO
-            DOCS_TABLE: DocumentsTable
-            OUTPUTS_TABLE: OutputsTable
+            DOCS_TABLE: !Ref DocumentsTable
+            OUTPUTS_TABLE: !Ref OutputsTable
         Events:
           SQSJobCompleted:
             Type: SQS
@@ -182,8 +182,8 @@ Resources:
             POWERTOOLS_SERVICE_NAME: APIProcessorFunction
             POWERTOOLS_METRICS_NAMESPACE: ocr-app
             LOG_LEVEL: INFO
-            DOCS_TABLE: DocumentsTable
-            OUTPUTS_TABLE: OutputsTable
+            DOCS_TABLE: !Ref DocumentsTable
+            OUTPUTS_TABLE: !Ref OutputsTable
             DOCS_BUCKET: !Ref DocsToAnalyze
         Events:
           CreateDocumentAPI:
@@ -307,7 +307,6 @@ Resources:
   DocumentsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: DocumentsTable
       StreamSpecification:
         StreamViewType: NEW_IMAGE
       KeySchema:
@@ -322,7 +321,6 @@ Resources:
   OutputsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: OutputsTable
       KeySchema:
         - 
           AttributeName: documentId
