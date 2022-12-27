@@ -1,6 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyResult, Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { createDocument, getDocumentById, getDocuments, getOutputs } from './services/documents.service';
+import { search } from './services/search.service';
 
 const logger = new Logger();
 
@@ -53,6 +54,13 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
                         break;
                 }
                 break;
+            }
+
+            case '/search': {
+                if (event.queryStringParameters?.keyword) {
+                    body = await search(event.queryStringParameters.keyword);
+                    statusCode = 200;
+                }
             }
 
             default:

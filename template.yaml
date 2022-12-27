@@ -141,6 +141,8 @@ Resources:
             LOG_LEVEL: INFO
             DOCS_TABLE: !Ref DocumentsTable
             OUTPUTS_TABLE: !Ref OutputsTable
+            OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+            OPENSEARCH_DOMAIN: textract
         Events:
           SQSJobCompleted:
             Type: SQS
@@ -162,6 +164,11 @@ Resources:
             - '@aws-sdk/client-textract'
             - 'amazon-textract-response-parser'
             - 'fs'
+            - '@aws-sdk/client-opensearch'
+            - 'aws4'
+            - '@aws-sdk/credential-provider-node'
+            - '@opensearch-project/opensearch'
+            - 'aws-opensearch-connector'
 
   APIProcessorFunction:
       Type: AWS::Serverless::Function
@@ -185,6 +192,8 @@ Resources:
             DOCS_TABLE: !Ref DocumentsTable
             OUTPUTS_TABLE: !Ref OutputsTable
             DOCS_BUCKET: !Ref DocsToAnalyze
+            OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+            OPENSEARCH_DOMAIN: textract
         Events:
           CreateDocumentAPI:
             Type: Api
@@ -210,6 +219,12 @@ Resources:
               RestApiId: !Ref OCRApiGateway
               Path: /documents/{id}/outputs
               Method: GET
+          GetSearchAPI:
+            Type: Api
+            Properties:
+              RestApiId: !Ref OCRApiGateway
+              Path: /search
+              Method: GET
       Metadata: # Manage esbuild properties
         BuildMethod: esbuild
         BuildProperties:
@@ -223,6 +238,9 @@ Resources:
             - '@aws-lambda-powertools'
             - uuid
             - '@aws-sdk/client-s3'
+            - '@aws-sdk/credential-provider-node'
+            - '@opensearch-project/opensearch'
+            - 'aws-opensearch-connector'
 
   # Lambda Layers
   AwsLayer:
@@ -295,7 +313,40 @@ Resources:
                 Action:
                   - 'sns:Publish'
                 Resource: !Ref TextractJobCompletion
-
+  # Open Search
+  OpenSearchDomain:
+        Type: AWS::OpenSearchService::Domain
+        Properties:
+          DomainName: 'textract'
+          EngineVersion: 'OpenSearch_1.0'
+          ClusterConfig:
+            DedicatedMasterEnabled: true
+            InstanceCount: 2
+            ZoneAwarenessEnabled: true
+            InstanceType: 't3.small.search'
+            DedicatedMasterType: 't3.small.search'
+          EBSOptions:
+            EBSEnabled: true
+            VolumeSize: 20
+            VolumeType: 'gp2'
+          AccessPolicies:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  AWS: !GetAtt ProcessJobCompletionFunctionRole.Arn
+                Action: 'es:*'
+                Resource:
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+              - Effecit: 'Allow'
+                Principal:
+                  AWS: !GetAtt APIProcessorFunction.Arn
+                Action: 'es:*'
+                Resource:
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+          AdvancedOptions:
+            rest.action.multi.allow_explicit_index: true
+            
   # S3 Buckets
   DocsToAnalyze:
     Type: AWS::S3::Bucket
@@ -396,3 +447,6 @@ Outputs:
   TextractServiceIamRole:
     Description: "IAM Role created for Textract"
     Value: !GetAtt TextractServiceIamRole.Arn
+  OpenSearchDomain:
+    Description: "Open Search used to search within documents"
+    Value: !GetAtt OpenSearchDomain.DomainEndpoint

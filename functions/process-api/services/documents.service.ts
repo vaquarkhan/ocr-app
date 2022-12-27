@@ -4,7 +4,7 @@ import { v4 } from 'uuid';
 import DynamoCustomClient from '../utils/dynamodb';
 import S3CustomClient from '../utils/s3';
 
-const logger = new Logger({ serviceName: 'DataStore' });
+const logger = new Logger({ serviceName: 'DocumentsService' });
 
 // DynamoDB
 const docsTableName = String(process.env.DOCS_TABLE);

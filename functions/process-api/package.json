@@ -13,6 +13,9 @@
     },
     "dependencies": {
         "@aws-lambda-powertools/logger": "^1.4.1",
+        "@aws-sdk/credential-provider-node": "^3.238.0",
+        "@opensearch-project/opensearch": "^2.1.0",
+        "aws-opensearch-connector": "^1.1.0",
         "aws-sdk": "2.1020.0",
         "esbuild": "^0.14.14"
     },

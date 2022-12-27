@@ -8,6 +8,7 @@ import { GetDocumentAnalysisCommandOutput } from '@aws-sdk/client-textract';
 import { ApiAnalyzeDocumentResponse, TextractDocument } from 'amazon-textract-response-parser';
 import { readFileSync } from 'fs';
 import { appendFile } from 'fs/promises';
+import OpenSearchCustomClient from './utils/opensearch';
 
 const logger = new Logger();
 
@@ -23,8 +24,34 @@ const textractClient = new TextractCustomClient();
 // S3
 const s3Client = new S3CustomClient();
 
-export async function storeForms(documentId: string, bucket: string, textractDocument: TextractDocument) {
+// Opensearch
+const osClient = new OpenSearchCustomClient();
+const osIndexName = String(process.env.OPENSEARCH_DOMAIN);
+
+export async function indexDocument(
+    documentId: string,
+    bucketName: string,
+    documentName: string,
+    textractDocument: TextractDocument,
+) {
+    logger.info(`Indexing document: ${documentId}`);
+    let text = '';
     for (const page of textractDocument.listPages()) {
+        for (const line of page.listLines()) {
+            text += line.text + ' ';
+        }
+    }
+    const document = {
+        documentId,
+        bucketName,
+        documentName,
+        content: text,
+    };
+    return osClient.index(osIndexName, documentId, document);
+}
+
+export async function storeForms(documentId: string, bucket: string, textractDocument: TextractDocument) {
+    for await (const page of textractDocument.listPages()) {
         // No forms found
         if (page.form.nFields === 0) {
             return;
@@ -68,9 +95,9 @@ export async function storeForms(documentId: string, bucket: string, textractDoc
 }
 
 export async function storeTables(documentId: string, bucket: string, textractDocument: TextractDocument) {
-    for (const page of textractDocument.listPages()) {
+    for await (const page of textractDocument.listPages()) {
         let tableIndex = 1;
-        for (const table of page.listTables()) {
+        for await (const table of page.listTables()) {
             const fileName = `table-${page.pageNumber}-${tableIndex}.csv`;
             const localPath = `/tmp/${documentId}-${fileName}`;
             for (const row of table.listRows()) {
@@ -141,6 +168,14 @@ export async function processRecord(record: SQSRecord) {
 
         // Store tables
         await storeTables(documentId, bucket, textractDocument);
+
+        // Index document
+        await indexDocument(
+            documentId,
+            bucket,
+            textractNotificationMessage.DocumentLocation.S3ObjectName,
+            textractDocument,
+        );
 
         // Mark document as completed in table
         await documentsDataStore.markDocumentCompleted(documentId);

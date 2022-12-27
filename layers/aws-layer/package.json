@@ -7,10 +7,15 @@
     "main": "index.js",
     "dependencies": {
         "@aws-lambda-powertools/logger": "^0.6.0",
+        "@aws-sdk/client-opensearch": "^3.238.0",
         "@aws-sdk/client-s3": "^3.211.0",
         "@aws-sdk/client-textract": "^3.211.0",
+        "@aws-sdk/credential-provider-node": "^3.238.0",
+        "@opensearch-project/opensearch": "^2.1.0",
         "amazon-textract-response-parser": "^0.2.0",
+        "aws-opensearch-connector": "^1.1.0",
         "aws-sdk": "2.1255.0",
+        "aws4": "^1.11.0",
         "fs": "^0.0.1-security",
         "uuid": "^9.0.0"
     },
