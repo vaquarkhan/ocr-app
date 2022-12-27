@@ -338,9 +338,9 @@ Resources:
                 Action: 'es:*'
                 Resource:
                   - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
-              - Effecit: 'Allow'
+              - Effect: 'Allow'
                 Principal:
-                  AWS: !GetAtt APIProcessorFunction.Arn
+                  AWS: !GetAtt APIProcessorFunctionRole.Arn
                 Action: 'es:*'
                 Resource:
                   - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
