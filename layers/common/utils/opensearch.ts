@@ -1,5 +1,4 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { Client } from '@opensearch-project/opensearch';
 import createAwsOpensearchConnector from 'aws-opensearch-connector';
 const AWS = require('aws-sdk');
@@ -11,7 +10,6 @@ export default class OpenSearchCustomClient {
     constructor() {}
 
     private async _getClient() {
-        const awsCredentials = await defaultProvider()();
         const connector = createAwsOpensearchConnector(AWS.config);
         return new Client({
             ...connector,
@@ -19,10 +17,11 @@ export default class OpenSearchCustomClient {
         });
     }
 
-    async index(indexName: string, body: any) {
+    async index(indexName: string, id: string, body: any) {
         let client = await this._getClient();
         const response = await client.index({
             index: indexName,
+            id,
             body,
         });
         return { statusCode: response.statusCode };

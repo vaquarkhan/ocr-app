@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult, Context, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
-import SqsCustomClient from './utils/sqs';
+import SqsCustomClient from '/opt/nodejs/common/utils/sqs';
 
 const logger = new Logger();
 
@@ -27,12 +27,11 @@ export async function processRecord(record: DynamoDBRecord) {
 /**
  *
  * @param {APIGatewayProxyEvent} event - API Gateway Lambda Proxy Input Format
- * @param {Context} context - Lambda $context variable
  *
  * @returns {APIGatewayProxyResult} object - API Gateway Lambda Proxy Output Format
  *
  */
-export const lambdaHandler = async (event: DynamoDBStreamEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const lambdaHandler = async (event: DynamoDBStreamEvent): Promise<APIGatewayProxyResult> => {
     logger.info(`Event: ${JSON.stringify(event, null, 2)}`);
     let response: APIGatewayProxyResult;
     try {

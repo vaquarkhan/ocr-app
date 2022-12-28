@@ -1,8 +1,6 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { DynamoDB } from 'aws-sdk';
 import { v4 } from 'uuid';
-import DynamoCustomClient from '../utils/dynamodb';
-import S3CustomClient from '../utils/s3';
+import DynamoCustomClient from '/opt/nodejs/common/utils/dynamodb';
 
 const logger = new Logger({ serviceName: 'DocumentsService' });
 

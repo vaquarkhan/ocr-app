@@ -8,6 +8,9 @@ Globals:
   Function:
     Timeout: 30
     Tracing: Active
+    Layers:
+      - !Ref AwsLayer
+      - !Ref CommonLayer
 
 Resources:
   # API Gateway
@@ -39,8 +42,6 @@ Resources:
       Architectures:
         - x86_64
       Tracing: Active
-      Layers:
-        - !Ref AwsLayer
       Policies:
         # Give the Lambda service access to poll your DynamoDB Stream
         - SQSSendMessagePolicy:
@@ -76,6 +77,7 @@ Resources:
           - uuid
           - '@aws-sdk/client-textract'
           - '@aws-sdk/client-s3'
+          - '/opt/nodejs/common/utils/*'
 
   ProcessSQSAsyncJobFunction:
     Type: AWS::Serverless::Function
@@ -86,8 +88,6 @@ Resources:
       Architectures:
         - x86_64
       Tracing: Active
-      Layers:
-        - !Ref AwsLayer
       Policies:
         # Give the Lambda service access to poll your DynamoDB Stream
         - AmazonTextractFullAccess
@@ -118,6 +118,8 @@ Resources:
           - aws-sdk
           - '@aws-lambda-powertools'
           - '@aws-sdk/client-textract'
+          - '/opt/nodejs/common/utils/*'
+
   ProcessJobCompletionFunction:
       Type: AWS::Serverless::Function
       Properties:
@@ -127,8 +129,6 @@ Resources:
         Architectures:
           - x86_64
         Tracing: Active
-        Layers:
-          - !Ref AwsLayer
         Policies:
           # Give the Lambda service access to poll your DynamoDB Stream
           - AmazonTextractFullAccess
@@ -169,6 +169,7 @@ Resources:
             - '@aws-sdk/credential-provider-node'
             - '@opensearch-project/opensearch'
             - 'aws-opensearch-connector'
+            - '/opt/nodejs/common/utils/*'
 
   APIProcessorFunction:
       Type: AWS::Serverless::Function
@@ -179,8 +180,6 @@ Resources:
         Architectures:
           - x86_64
         Tracing: Active
-        Layers:
-          - !Ref AwsLayer
         Policies:
           - AmazonS3FullAccess
           - AmazonDynamoDBFullAccess
@@ -241,6 +240,7 @@ Resources:
             - '@aws-sdk/credential-provider-node'
             - '@opensearch-project/opensearch'
             - 'aws-opensearch-connector'
+            - '/opt/nodejs/common/utils/*'
 
   # Lambda Layers
   AwsLayer:
@@ -254,6 +254,18 @@ Resources:
         - nodejs16.x
     Metadata:
       BuildMethod: nodejs16.x
+
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: CommonLayer
+      Description: AWS NPM package.
+      ContentUri: layers/common/
+      RetentionPolicy: Retain
+      CompatibleRuntimes:
+        - nodejs16.x
+    Metadata:
+      BuildMethod: makefile
 
   # SQS Queue
   JobResults:

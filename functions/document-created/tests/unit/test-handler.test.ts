@@ -1,52 +1,62 @@
-import { APIGatewayProxyResult, S3Event } from 'aws-lambda';
+import { APIGatewayProxyResult, Context, DynamoDBStreamEvent } from 'aws-lambda';
 import { lambdaHandler } from '../../app';
+import 'jest';
 
 describe('Unit test for app handler', function () {
+    beforeAll(() => {
+        jest.resetModules();
+        process.env = { AWS_REGION: 'eu-central-1' };
+    });
     it('verifies successful response', async () => {
-        const event: S3Event = {
-            "Records": [
+        const event: DynamoDBStreamEvent = {
+            Records: [
                 {
-                  "eventVersion": "2.0",
-                  "eventSource": "aws:s3",
-                  "awsRegion": "us-east-1",
-                  "eventTime": "1970-01-01T00:00:00.000Z",
-                  "eventName": "ObjectCreated:Put",
-                  "userIdentity": {
-                    "principalId": "EXAMPLE"
-                  },
-                  "requestParameters": {
-                    "sourceIPAddress": "127.0.0.1"
-                  },
-                  "responseElements": {
-                    "x-amz-request-id": "EXAMPLE123456789",
-                    "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH"
-                  },
-                  "s3": {
-                    "s3SchemaVersion": "1.0",
-                    "configurationId": "testConfigRule",
-                    "bucket": {
-                      "name": "docs-to-analyze",
-                      "ownerIdentity": {
-                        "principalId": "EXAMPLE"
-                      },
-                      "arn": "arn:aws:s3:::example-docs-to-analyze"
+                    eventID: 'c81e728d9d4c2f636f067f89cc14862c',
+                    eventName: 'INSERT',
+                    eventVersion: '1.1',
+                    eventSource: 'aws:dynamodb',
+                    awsRegion: 'us-east-1',
+                    dynamodb: {
+                        Keys: {
+                            Id: {
+                                N: '101',
+                            },
+                        },
+                        NewImage: {
+                            documentId: {
+                                S: '2dd52892-1796-4251-89eb-a64698a3d3b0',
+                            },
+                            bucketName: {
+                                S: 'ocr-app-docstoanalyze-u6cs9o64ms4y',
+                            },
+                            objectName: {
+                                S: 'OoPdfFormExample.pdf',
+                            },
+                        },
+                        OldImage: {
+                            Message: {
+                                S: 'New item!',
+                            },
+                            Id: {
+                                N: '101',
+                            },
+                        },
+                        ApproximateCreationDateTime: 1428537600,
+                        SequenceNumber: '4421584500000000017450439092',
+                        SizeBytes: 59,
+                        StreamViewType: 'NEW_AND_OLD_IMAGES',
                     },
-                    "object": {
-                      "key": "OoPdfFormExample.pdf",
-                      "size": 1024,
-                      "eTag": "0123456789abcdef0123456789abcdef",
-                      "sequencer": "0A1B2C3D4E5F678901"
-                    }
-                  }
-                }
-              ]
+                    eventSourceARN:
+                        'arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899',
+                },
+            ],
         };
-        const result: APIGatewayProxyResult = await lambdaHandler(event, null);
+        const result: APIGatewayProxyResult = await lambdaHandler(event);
 
         expect(result.statusCode).toEqual(200);
         expect(result.body).toEqual(
             JSON.stringify({
-                message: 'hello world',
+                message: 'DynamoDB records processed successfully',
             }),
         );
     });

@@ -1,5 +1,5 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import OpenSearchCustomClient from '../utils/opensearch';
+import OpenSearchCustomClient from '/opt/nodejs/common/utils/opensearch';
 
 const logger = new Logger({ serviceName: 'SearchService' });
 

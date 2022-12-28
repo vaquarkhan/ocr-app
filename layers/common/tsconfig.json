@@ -3,17 +3,14 @@
         "target": "es2020",
         "strict": true,
         "preserveConstEnums": true,
-        "noEmit": true,
-        "sourceMap": false,
-        "module": "es2015",
+        "sourceMap": true,
+        "module": "commonjs",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "baseUrl": ".",
-        "paths": {
-            "/opt/nodejs/common/*": ["../../layers/common/*"]
-        }
+        "rootDir": ".",
+        "outDir": "dist",
     },
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "**/*.test.ts"]
 }

@@ -12,4 +12,8 @@ export default {
     coverageDirectory: 'coverage',
     coverageProvider: 'v8',
     testMatch: ['**/tests/unit/*.test.ts'],
+    setupFiles: ['dotenv/config'],
+    moduleNameMapper: {
+        '/opt/nodejs/(.*)': '<rootDir>../../layers/common/$1',
+    },
 };

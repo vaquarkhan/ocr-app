@@ -17,7 +17,7 @@ export default class S3CustomClient {
 
     async putObject(bucketName: string, objectName: string, data: any) {
         const params: PutObjectCommandInput = {
-            Body: JSON.stringify(data),
+            Body: data,
             Bucket: bucketName,
             Key: objectName,
         };

@@ -1,23 +1,22 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import SQS from 'aws-sdk/clients/sqs';
 
-// Declare some custom client just to illustrate how TS will include only used files into lambda distribution
 export default class SqsCustomClient {
     private _logger = new Logger({ serviceName: "SqsCustomClient" });
-    private _queue: string;
     private _sqs: SQS;
 
-    constructor(queue: string) {
+    constructor() {
         this._sqs = new SQS();
-        this._queue = queue;
     }
 
-    async send(body: object) {
+    async send(queueUrl: string, body: Object) {
         const params = {
             MessageBody: JSON.stringify(body),
-            QueueUrl: this._queue,
+            QueueUrl: queueUrl,
             DelaySeconds: 0,
         }
-        return this._sqs.sendMessage(params).promise();
+        const message = await this._sqs.sendMessage(params).promise();
+        this._logger.info(`Sent message to queue ${queueUrl}, message id: ${message.MessageId}`)
+        return message;
     }
 }

@@ -1,7 +1,7 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { 
     TextractClient, AnalyzeDocumentCommand, StartDocumentAnalysisCommand,
-    StartDocumentAnalysisCommandInput, AnalyzeDocumentCommandInput } from '@aws-sdk/client-textract';
+    StartDocumentAnalysisCommandInput, AnalyzeDocumentCommandInput, GetDocumentAnalysisCommand, GetDocumentAnalysisCommandInput } from '@aws-sdk/client-textract';
 
 export default class TextractCustomClient {
     private _logger = new Logger({ serviceName: "TextractCustomClient" });
@@ -12,7 +12,7 @@ export default class TextractCustomClient {
     }
 
     async analyzeDocument(bucketName: string, objectName: string) {
-        const features = ['FORMS'];
+        const features = ['FORMS', 'TABLES'];
         const params: AnalyzeDocumentCommandInput = {
             Document: {
                 S3Object: {
@@ -29,8 +29,14 @@ export default class TextractCustomClient {
         return data;
     }
 
-    async startAnalyzeDocument(bucketName: string, objectName: string, documentId: string) {
-        const features = ['FORMS'];
+    async startAnalyzeDocument(
+        bucketName: string,
+        objectName: string,
+        documentId: string,
+        topicArn: string,
+        roleArn: string,
+    ) {
+        const features = ['FORMS', 'TABLES'];
         const params: StartDocumentAnalysisCommandInput = {
             ClientRequestToken: documentId,
             JobTag: documentId,
@@ -40,12 +46,28 @@ export default class TextractCustomClient {
                     Name: objectName,
                 },
             },
+            NotificationChannel: {
+                SNSTopicArn: topicArn,
+                RoleArn: roleArn,
+            },
             FeatureTypes: features,
         };
         const command = new StartDocumentAnalysisCommand(params);
 
         const data = await this._client.send(command);
-        this._logger.info(`Analyzed object ${objectName} through textract async`)
+        this._logger.info(`Analyzed object ${objectName} through textract async, job id: ${data.JobId}`)
+        return data;
+    }
+
+    async getAalyzeDocument(jobId: string, nextToken?: string) {
+        const params: GetDocumentAnalysisCommandInput = {
+            JobId: jobId,
+            NextToken: nextToken,
+        };
+        const command = new GetDocumentAnalysisCommand(params);
+
+        const data = await this._client.send(command);
+        this._logger.info(`Analyzed document with ${jobId} is returned`)
         return data;
     }
 }

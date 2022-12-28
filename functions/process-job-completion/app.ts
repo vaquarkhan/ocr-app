@@ -1,14 +1,14 @@
 import { APIGatewayProxyResult, Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
-import TextractCustomClient from './utils/textract';
-import S3CustomClient from './utils/s3';
-import DataStore from './utils/datastore';
+import TextractCustomClient from '/opt/nodejs/common/utils/textract';
+import S3CustomClient from '/opt/nodejs/common/utils/s3';
+import DataStore from '/opt/nodejs/common/utils/datastore';
 import { ITextractResultsMessageModel } from './models/textract-results.model';
 import { GetDocumentAnalysisCommandOutput } from '@aws-sdk/client-textract';
 import { ApiAnalyzeDocumentResponse, TextractDocument } from 'amazon-textract-response-parser';
 import { readFileSync } from 'fs';
 import { appendFile } from 'fs/promises';
-import OpenSearchCustomClient from './utils/opensearch';
+import OpenSearchCustomClient from '/opt/nodejs/common/utils/opensearch';
 
 const logger = new Logger();
 
@@ -139,7 +139,7 @@ export async function processRecord(record: SQSRecord) {
         let hasNext = true;
         let nextToken;
         while (hasNext) {
-            const analysis: GetDocumentAnalysisCommandOutput = await textractClient.getAnalyzeDocument(
+            const analysis: GetDocumentAnalysisCommandOutput = await textractClient.getAalyzeDocument(
                 textractNotificationMessage.JobId,
                 nextToken,
             );

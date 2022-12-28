@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult, Context, S3Event, S3EventRecord, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
-import TextractCustomClient from './utils/textract';
+import TextractCustomClient from '/opt/nodejs/common/utils/textract';
 
 const logger = new Logger();
 

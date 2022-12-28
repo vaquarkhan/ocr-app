@@ -3,12 +3,13 @@ import DynamoDB from 'aws-sdk/clients/dynamodb';
 import DynamoCustomClient from './dynamodb';
 
 export default class DataStore {
-    private _logger = new Logger({ serviceName: 'DataStore' });
+    private _logger = new Logger({ serviceName: "DataStore" });
     private _client: DynamoCustomClient;
     private _tableName: string;
 
-    constructor(table = process.env.SAMPLE_TABLE) {
-        this._client = new DynamoCustomClient(table);
+
+    constructor(table: string) {
+        this._client = new DynamoCustomClient();
         this._tableName = String(table);
     }
 
@@ -19,12 +20,11 @@ export default class DataStore {
                 ':bucketNameValue': bucketName,
                 ':objectNameValue': objectName,
                 ':documentstatusValue': 'IN_PROGRESS',
-                ':documentCreatedOnValue': new Date().toISOString(),
-            },
-            UpdateExpression:
-                'SET bucketName = :bucketNameValue, objectName = :objectNameValue, documentStatus = :documentstatusValue, documentCreatedOn = :documentCreatedOnValue',
+                ':documentCreatedOnValue': new Date().toISOString()
+            }, 
+            UpdateExpression: "SET bucketName = :bucketNameValue, objectName = :objectNameValue, documentStatus = :documentstatusValue, documentCreatedOn = :documentCreatedOnValue",
             Key: {
-                documentId: documentId,
+                "documentId": documentId
             },
             TableName: this._tableName,
         };
@@ -38,12 +38,11 @@ export default class DataStore {
         var params: DynamoDB.DocumentClient.UpdateItemInput = {
             ExpressionAttributeValues: {
                 ':documentstatusValue': 'COMPLETED',
-                ':documentCompletedOnValue': new Date().toISOString(),
-            },
-            UpdateExpression:
-                'SET documentStatus = :documentstatusValue, documentCompletedOn = :documentCompletedOnValue',
+                ':documentCompletedOnValue': new Date().toISOString()
+            }, 
+            UpdateExpression: "SET documentStatus = :documentstatusValue, documentCompletedOn = :documentCompletedOnValue",
             Key: {
-                documentId: documentId,
+                "documentId": documentId
             },
             TableName: this._tableName,
         };
@@ -51,9 +50,8 @@ export default class DataStore {
         this._logger.info(`Updated document id ${documentId} as COMPLETED`);
         return data;
     }
-
     async createOutput(documentId: string, outputType: string, outputPath: string) {
-        const data = await this._client.write({
+        const data = await this._client.write(this._tableName, {
             documentId,
             outputPath,
             outputType,
