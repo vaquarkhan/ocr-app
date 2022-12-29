@@ -203,31 +203,31 @@ Resources:
             Type: Api
             Properties:
               RestApiId: !Ref OCRApiGateway
-              Path: /documents
+              Path: /api/documents
               Method: POST
           GetDocumentsAPI:
             Type: Api
             Properties:
               RestApiId: !Ref OCRApiGateway
-              Path: /documents
+              Path: /api/documents
               Method: GET
           GetDocumentsByIDAPI:
             Type: Api
             Properties:
               RestApiId: !Ref OCRApiGateway
-              Path: /documents/{id}
+              Path: /api/documents/{id}
               Method: GET
           GetOutputsAPI:
             Type: Api
             Properties:
               RestApiId: !Ref OCRApiGateway
-              Path: /documents/{id}/outputs
+              Path: /api/documents/{id}/outputs
               Method: GET
           GetSearchAPI:
             Type: Api
             Properties:
               RestApiId: !Ref OCRApiGateway
-              Path: /search
+              Path: /api/search
               Method: GET
       Metadata: # Manage esbuild properties
         BuildMethod: esbuild
@@ -549,6 +549,76 @@ Resources:
       Roles:
         authenticated: !GetAtt AuthorizedRole.Arn
         unauthenticated: !GetAtt UnAuthorizedRole.Arn
+
+  # Frontend Website Resources
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+
+  CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - Id: FrontendBucket
+              DomainName: !GetAtt FrontendBucket.RegionalDomainName
+              S3OriginConfig:
+                OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+            - Id: Backend
+              DomainName: !Sub "${OCRApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
+              OriginPath: "/Prod"
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+          DefaultCacheBehavior:
+            TargetOriginId: FrontendBucket
+            ViewerProtocolPolicy: redirect-to-https
+            ForwardedValues:
+              QueryString: true
+          CacheBehaviors:
+            - TargetOriginId: Backend
+              PathPattern: "api/*"
+              DefaultTTL: 0
+              MinTTL: 0
+              MaxTTL: 0
+              ViewerProtocolPolicy: https-only
+              AllowedMethods: [GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE]
+              ForwardedValues:
+                QueryString: true
+                Headers:
+                  - "Authorization"
+          CustomErrorResponses:
+            - ErrorCachingMinTTL: 10
+              ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCachingMinTTL: 10
+              ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+          Enabled: true
+          DefaultRootObject: index.html
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+            Action: 's3:GetObject'
+            Resource: !Sub
+              - 'arn:aws:s3:::${Bucket}/*'
+              - Bucket: !Ref FrontendBucket
+      Bucket: !Ref FrontendBucket
+        
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties: 
+      CloudFrontOriginAccessIdentityConfig: 
+        Comment: CloudFront access identity  
+
 Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
@@ -598,6 +668,9 @@ Outputs:
   UploadedDocuments:
     Description: "This is the bucket used to upload documents"
     Value: !GetAtt UploadedDocuments.Arn
+  FrontendBucket:
+    Description: "This is the bucket used to serve frontend"
+    Value: !GetAtt FrontendBucket.Arn
   AsyncJob:
     Description: "This is the async job results queue"
     Value: !GetAtt AsyncJob.Arn
@@ -613,6 +686,11 @@ Outputs:
   OpenSearchDomain:
     Description: "Open Search used to search within documents"
     Value: !GetAtt OpenSearchDomain.DomainEndpoint
+  OpenSearchDashboardUrl:
+    Description: "OpenSearch Dashboard URL"
+    Value: !Sub
+            - 'https://${Domain}/_dashboards'
+            - Domain: !GetAtt OpenSearchDomain.DomainEndpoint
   UserPoolId:
     Description: "ID of the Cognito User Pool"
     Value: !Ref UserPool
@@ -622,8 +700,6 @@ Outputs:
   IdentityPoolId:
     Description: "ID of the Cognito Identity Pool"
     Value: !Ref IdentityPool
-  OpenSearchDashboardUrl:
-    Description: "OpenSearch Dashboard URL"
-    Value: !Sub
-            - 'https://${Domain}/_dashboards'
-            - Domain: !GetAtt OpenSearchDomain.DomainEndpoint
+  Website:
+    Description: "URL of a Simple Frontend Website to interact with documents"
+    Value: !GetAtt CloudFrontDistribution.DomainName

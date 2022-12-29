@@ -1,5 +1,5 @@
-import { APIGatewayEvent, APIGatewayProxyResult, Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
+import { APIGatewayEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { createDocument, getDocumentById, getDocuments, getOutputs } from './services/documents.service';
 import { search } from './services/search.service';
 
@@ -20,7 +20,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
     let statusCode = 400;
     try {
         switch (event.resource) {
-            case '/documents/{id}': {
+            case '/api/documents/{id}': {
                 const { id } = event.pathParameters ?? {};
                 if (id) {
                     body = await getDocumentById(id);
@@ -29,7 +29,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
                 break;
             }
 
-            case '/documents/{id}/outputs': {
+            case '/api/documents/{id}/outputs': {
                 const { id } = event.pathParameters ?? {};
                 if (id) {
                     body = await getOutputs(id);
@@ -38,7 +38,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
                 break;
             }
 
-            case '/documents': {
+            case '/api/documents': {
                 switch (event.httpMethod) {
                     case 'GET':
                         body = await getDocuments();
@@ -56,7 +56,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
                 break;
             }
 
-            case '/search': {
+            case '/api/search': {
                 if (event.queryStringParameters?.keyword) {
                     body = await search(event.queryStringParameters.keyword);
                     statusCode = 200;
