@@ -12,6 +12,11 @@ Globals:
       - !Ref AwsLayer
       - !Ref CommonLayer
 
+Parameters:
+  UserEmail:
+    Description: Email address of the created user
+    Type: String
+
 Resources:
   # API Gateway
   OCRApiGateway:
@@ -25,7 +30,7 @@ Resources:
           AddDefaultAuthorizerToCorsPreflight: false
           Authorizers:
             CognitoAuth:
-              UserPoolArn: 'arn:aws:cognito-idp:eu-central-1:874613073983:userpool/eu-central-1_RRA7jPh0i'
+              UserPoolArn: !GetAtt UserPool.Arn
               AuthType: "COGNITO_USER_POOLS"
         Cors:
           AllowMethods: "'GET,POST,OPTIONS'"
@@ -341,6 +346,11 @@ Resources:
             EBSEnabled: true
             VolumeSize: 20
             VolumeType: 'gp2'
+          CognitoOptions:
+            Enabled: True
+            UserPoolId: !Ref UserPool
+            IdentityPoolId: !Ref IdentityPool
+            RoleArn: !GetAtt OpenSearchCognitoIamRole.Arn
           AccessPolicies:
             Version: '2012-10-17'
             Statement:
@@ -356,9 +366,32 @@ Resources:
                 Action: 'es:*'
                 Resource:
                   - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+              - Effect: 'Allow'
+                Principal:
+                  AWS: !GetAtt AuthorizedRole.Arn
+                Action: 'es:*'
+                Resource:
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
           AdvancedOptions:
             rest.action.multi.allow_explicit_index: true
-            
+
+  # IAM Role
+  OpenSearchCognitoIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - 'es.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonESCognitoAccess'
+
   # S3 Buckets
   DocsToAnalyze:
     Type: AWS::S3::Bucket
@@ -398,6 +431,124 @@ Resources:
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
 
+  # Cognito
+  UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+        AliasAttributes:
+          - preferred_username
+        Schema:
+          - AttributeDataType: String
+            Name: email
+            Required: false
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+        UserPoolId: !Ref UserPool 
+        Domain: "ocr-app"
+
+  UserPoolUser:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      DesiredDeliveryMediums:
+        - EMAIL
+      Username: !Ref UserEmail
+      UserPoolId: !Ref UserPool
+      UserAttributes:
+        - Name: email
+          Value: !Ref UserEmail
+
+  UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref UserPool
+        GenerateSecret: false
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders: 
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  # Create a role for unauthorized acces to AWS resources. Very limited access.
+  UnAuthorizedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Federated: "cognito-identity.amazonaws.com"
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals: 
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": unauthenticated
+      Policies:
+        - PolicyName: "CognitoUnauthorizedPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                Resource: "*"
+
+  # Create a role for authorized acces to AWS resources.
+  AuthorizedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Federated: "cognito-identity.amazonaws.com"
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals: 
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": authenticated
+      Policies:
+        - PolicyName: "CognitoAuthorizedPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                  - "cognito-identity:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "s3:*"
+                Resource: "*"
+  
+  # Assigns the roles to the Identity Pool
+  IdentityPoolRoleMapping:
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt AuthorizedRole.Arn
+        unauthenticated: !GetAtt UnAuthorizedRole.Arn
 Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
@@ -462,3 +613,17 @@ Outputs:
   OpenSearchDomain:
     Description: "Open Search used to search within documents"
     Value: !GetAtt OpenSearchDomain.DomainEndpoint
+  UserPoolId:
+    Description: "ID of the Cognito User Pool"
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: "ID of the Cognito User Pool Client"
+    Value: !Ref UserPoolClient
+  IdentityPoolId:
+    Description: "ID of the Cognito Identity Pool"
+    Value: !Ref IdentityPool
+  OpenSearchDashboardUrl:
+    Description: "OpenSearch Dashboard URL"
+    Value: !Sub
+            - 'https://${Domain}/_dashboards'
+            - Domain: !GetAtt OpenSearchDomain.DomainEndpoint
