@@ -1,0 +1,82 @@
+{
+  "resource": "/api/documents/{id}",
+  "path": "/api/documents",
+  "httpMethod": "DELETE",
+  "isBase64Encoded": false,
+  "queryStringParameters": {
+    "foo": "bar"
+  },
+  "pathParameters": {
+    "proxy": "/api/documents",
+    "id": "8fa2a54d-252b-4c61-a448-a2785a5c3891"
+  },
+  "stageVariables": {
+    "baz": "qux"
+  },
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch",
+    "Accept-Language": "en-US,en;q=0.8",
+    "Cache-Control": "max-age=0",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "US",
+    "Host": "1234567890.execute-api.us-east-1.amazonaws.com",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "Custom User Agent String",
+    "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
+    "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "resourceId": "123456",
+    "stage": "prod",
+    "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "requestTimeEpoch": 1428582896000,
+    "authorizer": {
+      "claims": {
+        "sub": "a305e5d6-070c-4b8e-884c-e23b7b603fcd",
+        "cognito:groups": "AdminUserGroup-0DrCibnc7fXi",
+        "iss": "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_8tQcWCKM3",
+        "cognito:username": "saudmh@amazon.sa",
+        "preferred_username": "saud",
+        "origin_jti": "71c6f1e1-8afd-4bde-bced-030e7749d823",
+        "cognito:roles": "arn:aws:iam::874613073983:role/ocr-app-AdminUserRole-E3T5MZOEYHXU",
+        "aud": "5tkf3eh9reb49d8mrrslo81am",
+        "event_id": "766654be-1ebe-469c-afc7-25c0caa99415",
+        "token_use": "id",
+        "custom:department": "finance",
+        "auth_time": "1674382477",
+        "exp": "Sun Jan 22 11:14:36 UTC 2023",
+        "iat": "Sun Jan 22 10:14:37 UTC 2023",
+        "jti": "c9c34c85-ae1e-42a5-8db4-dbf69bfabe23",
+        "email": "saudmh@amazon.sa"
+      }
+    },
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "accessKey": null,
+      "sourceIp": "127.0.0.1",
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Custom User Agent String",
+      "user": null
+    },
+    "path": "/prod/path/to/resource",
+    "resourcePath": "/{proxy+}",
+    "httpMethod": "POST",
+    "apiId": "1234567890",
+    "protocol": "HTTP/1.1"
+  }
+}

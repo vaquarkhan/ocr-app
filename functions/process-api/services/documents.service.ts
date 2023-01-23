@@ -50,6 +50,11 @@ export async function getDocumentById(id: string) {
     return data;
 }
 
+export async function deleteDocument(id: string) {
+    const data = await ddb.delete({ TableName: docsTableName, Key: { documentId: id } });
+    return data;
+}
+
 export async function getOutputs(id: string) {
     const keyCndExp = 'documentId = :documentId';
     const expVal = { ':documentId': id };

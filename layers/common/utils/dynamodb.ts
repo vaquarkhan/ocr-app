@@ -41,4 +41,8 @@ export default class DynamoCustomClient {
     async put(params: DynamoDB.DocumentClient.UpdateItemInput) {
         return this._docClient.update(params).promise();
     }
+
+    async delete(params: DynamoDB.DocumentClient.DeleteItemInput) {
+        return this._docClient.delete(params).promise();
+    }
 }

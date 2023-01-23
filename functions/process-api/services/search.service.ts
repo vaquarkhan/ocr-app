@@ -36,3 +36,8 @@ export async function search(keyword: string, token: string) {
     }
     return response;
 }
+
+export async function deleteIndexedDocument(id: string) {
+    const response = await osClient.deleteDocument(osIndexName, id);
+    return response;
+}

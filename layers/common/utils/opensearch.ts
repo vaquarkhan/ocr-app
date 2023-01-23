@@ -61,4 +61,13 @@ export default class OpenSearchCustomClient {
         });
         return response;
     }
+
+    async deleteDocument(indexName: string, id: string) {
+        let client = await this._getClient();
+        const response = await client.delete({
+            index: indexName,
+            id: id,
+        });
+        return response;
+    }
 }

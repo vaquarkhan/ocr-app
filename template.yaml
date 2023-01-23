@@ -138,6 +138,7 @@ Resources:
           - AmazonTextractFullAccess
           - AmazonS3FullAccess
           - AmazonDynamoDBFullAccess
+          - ComprehendFullAccess
         Environment:
           Variables:
             POWERTOOLS_SERVICE_NAME: ProcessJobCompletionFunction
@@ -402,9 +403,6 @@ Resources:
 
   # S3 Buckets
   DocsToAnalyze:
-    Type: AWS::S3::Bucket
-
-  UploadedDocuments:
     Type: AWS::S3::Bucket
 
   # Dynamo DB
@@ -730,9 +728,6 @@ Outputs:
   DocsToAnalyze:
     Description: "This is the bucket used to analyze documents"
     Value: !GetAtt DocsToAnalyze.Arn
-  UploadedDocuments:
-    Description: "This is the bucket used to upload documents"
-    Value: !GetAtt UploadedDocuments.Arn
   FrontendBucket:
     Description: "This is the bucket used to serve frontend"
     Value: !GetAtt FrontendBucket.Arn
