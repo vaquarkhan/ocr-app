@@ -9,7 +9,6 @@ Globals:
     Timeout: 30
     Tracing: Active
     Layers:
-      - !Ref AwsLayer
       - !Ref CommonLayer
 
 Parameters:
@@ -175,6 +174,7 @@ Resources:
             - '@opensearch-project/opensearch'
             - 'aws-opensearch-connector'
             - '/opt/nodejs/common/utils/*'
+            - '@aws-sdk/client-comprehend'
 
   APIProcessorFunction:
       Type: AWS::Serverless::Function
@@ -250,18 +250,6 @@ Resources:
             - '/opt/nodejs/common/utils/*'
 
   # Lambda Layers
-  AwsLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: AwsLayer
-      Description: AWS NPM package.
-      ContentUri: layers/aws-layer/
-      RetentionPolicy: Retain
-      CompatibleRuntimes:
-        - nodejs16.x
-    Metadata:
-      BuildMethod: nodejs16.x
-
   CommonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

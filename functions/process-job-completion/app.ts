@@ -9,6 +9,7 @@ import { ApiAnalyzeDocumentResponse, TextractDocument } from 'amazon-textract-re
 import { readFileSync } from 'fs';
 import { appendFile } from 'fs/promises';
 import OpenSearchCustomClient from '/opt/nodejs/common/utils/opensearch';
+import ComprehendCustomClient from '/opt/nodejs/common/utils/comprehend';
 
 const logger = new Logger();
 
@@ -28,6 +29,9 @@ const s3Client = new S3CustomClient();
 const osClient = new OpenSearchCustomClient();
 const osIndexName = String(process.env.OPENSEARCH_INDEX_NAME);
 
+// Comprehend
+const comprehendClient = new ComprehendCustomClient();
+
 export async function indexDocument(
     documentId: string,
     bucketName: string,
@@ -41,6 +45,28 @@ export async function indexDocument(
             text += line.text + ' ';
         }
     }
+
+    // Detect entities to index using comprehend
+    const comprehendEntites = await comprehendClient.detectEntitites(text);
+    let entities;
+    if (comprehendEntites.length > 0) {
+        // Store entities in S3
+        const path = `${documentId}/comprehend-entities.json`;
+        await s3Client.putObject(bucketName, path, JSON.stringify(comprehendEntites));
+
+        // Store entities details in table
+        await outputsDataStore.createOutput(documentId, 'COMPREHEND-ENTITIES', path);
+
+        // Append entities to be indexed
+        entities = comprehendEntites.reduce((acc: any, entity) => {
+            if (entity.Type) {
+                const type = entity.Type.toLowerCase();
+                acc[type] = acc[type] ? acc[type] + ' ' + entity.Text : entity.Text;
+            }
+            return acc;
+        }, {});
+    }
+
     const document = await documentsDataStore.getDocument(documentId);
     if (document) {
         const body = {
@@ -49,6 +75,7 @@ export async function indexDocument(
             documentName,
             content: text,
             department: document.department,
+            entities: entities,
         };
         return osClient.index(osIndexName, documentId, body);
     }
