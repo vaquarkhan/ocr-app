@@ -12,7 +12,7 @@ const ddb = new DynamoCustomClient();
 // Bucket Name
 const documentBucket = String(process.env.DOCS_BUCKET);
 
-export async function createDocument(keys: any[]) {
+export async function createDocument(keys: any[], department?: string) {
     const documents: any[] = [];
     for await (const element of keys) {
         const documentId = v4(); // Generate random uuid
@@ -22,6 +22,7 @@ export async function createDocument(keys: any[]) {
             documentId: documentId,
             bucketName: documentBucket,
             objectName: decodeURIComponent(element.key.replace(/\+/g, ' ')),
+            department: department,
             documentStatus: 'IN_PROGRESS',
             documentCreatedOn: new Date().toISOString(),
         };
@@ -32,8 +33,15 @@ export async function createDocument(keys: any[]) {
     return documents;
 }
 
-export async function getDocuments() {
-    const data = await ddb.readAll(docsTableName);
+export async function getDocuments(department?: string) {
+    let data;
+    if (department) {
+        const filterExp = 'department = :department';
+        const ExpVal = { ':department': department };
+        data = await ddb.readAll(docsTableName, filterExp, ExpVal);
+    } else {
+        data = await ddb.readAll(docsTableName);
+    }
     return data;
 }
 

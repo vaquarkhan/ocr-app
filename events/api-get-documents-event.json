@@ -1,13 +1,13 @@
 {
-  "resource": "/documents/{id}/outputs",
-  "path": "/documents",
+  "resource": "/api/documents",
+  "path": "/api/documents",
   "httpMethod": "GET",
   "isBase64Encoded": false,
   "queryStringParameters": {
     "foo": "bar"
   },
   "pathParameters": {
-    "proxy": "/documents",
+    "proxy": "/api/documents",
     "id": "cd9c24e5-2c9a-43ce-9a41-b0f4967e65b9"
   },
   "stageVariables": {
@@ -40,6 +40,26 @@
     "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
     "requestTime": "09/Apr/2015:12:34:56 +0000",
     "requestTimeEpoch": 1428582896000,
+    "authorizer": {
+      "claims": {
+        "sub": "a305e5d6-070c-4b8e-884c-e23b7b603fcd",
+        "cognito:groups": "AdminUserGroup-0DrCibnc7fXi",
+        "iss": "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_8tQcWCKM3",
+        "cognito:username": "saudmh@amazon.sa",
+        "preferred_username": "saud",
+        "origin_jti": "71c6f1e1-8afd-4bde-bced-030e7749d823",
+        "cognito:roles": "arn:aws:iam::874613073983:role/ocr-app-AdminUserRole-E3T5MZOEYHXU",
+        "aud": "5tkf3eh9reb49d8mrrslo81am",
+        "event_id": "766654be-1ebe-469c-afc7-25c0caa99415",
+        "token_use": "id",
+        "custom:department": "finance",
+        "auth_time": "1674382477",
+        "exp": "Sun Jan 22 11:14:36 UTC 2023",
+        "iat": "Sun Jan 22 10:14:37 UTC 2023",
+        "jti": "c9c34c85-ae1e-42a5-8db4-dbf69bfabe23",
+        "email": "saudmh@amazon.sa"
+      }
+    },
     "identity": {
       "cognitoIdentityPoolId": null,
       "accountId": null,

@@ -9,16 +9,28 @@ export default class OpenSearchCustomClient {
 
     constructor() {}
 
-    private async _getClient() {
-        const connector = createAwsOpensearchConnector(AWS.config);
+    private async _getClient(token?: string) {
+        let connector;
+        if (token) {
+            const loginIdentityKey = `cognito-idp.${String(process.env.AWS_REGION)}.amazonaws.com/${String(process.env.USER_POOL_ID)}`
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: String(process.env.IDENTITY_POOL_ID),
+                Logins: { // optional tokens, used for authenticated login
+                    [loginIdentityKey]: token.split(' ')[1], // Get token after Beaerer
+                }
+              });
+            connector = createAwsOpensearchConnector(AWS.config)
+        } else {
+            connector = createAwsOpensearchConnector(AWS.config);
+        }
         return new Client({
             ...connector,
             node: `https://${this._host}`,
         });
     }
 
-    async index(indexName: string, id: string, body: any) {
-        let client = await this._getClient();
+    async index(indexName: string, id: string, body: any, token?: string) {
+        let client = await this._getClient(token);
         const response = await client.index({
             index: indexName,
             id,
@@ -27,8 +39,8 @@ export default class OpenSearchCustomClient {
         return { statusCode: response.statusCode };
     }
 
-    async search(indexName: string, keyword: string) {
-        let client = await this._getClient();
+    async search(indexName: string, keyword: string, token?: string) {
+        let client = await this._getClient(token);
         const response = await client.search({
             index: indexName,
             body: {

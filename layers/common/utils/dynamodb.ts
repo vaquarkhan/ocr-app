@@ -9,8 +9,8 @@ export default class DynamoCustomClient {
         this._docClient = new DynamoDB.DocumentClient();
     }
 
-    async readAll(tableName: string) {
-        const data = await this._docClient.scan({ TableName: tableName }).promise();
+    async readAll(tableName: string, filterExp?: string, expVal?: Object) {
+        const data = await this._docClient.scan({ TableName: tableName, FilterExpression: filterExp, ExpressionAttributeValues: expVal }).promise();
         return data;
     }
 

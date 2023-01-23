@@ -50,6 +50,7 @@ export default class DataStore {
         this._logger.info(`Updated document id ${documentId} as COMPLETED`);
         return data;
     }
+
     async createOutput(documentId: string, outputType: string, outputPath: string) {
         const data = await this._client.write(this._tableName, {
             documentId,
@@ -58,5 +59,9 @@ export default class DataStore {
         });
         this._logger.info(`Created output type: ${outputType} for document id ${documentId}`);
         return data;
+    }
+
+    async getDocument(documentId: string) {
+        return this._client.read(this._tableName, { documentId });
     }
 }

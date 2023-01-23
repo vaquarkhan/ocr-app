@@ -5,6 +5,14 @@ import { search } from './services/search.service';
 
 const logger = new Logger();
 
+export function extractDepartment(authorizer: any): string {
+    let department;
+    if (authorizer?.claims && authorizer?.claims['custom:department']) {
+        department = authorizer.claims['custom:department'];
+    }
+    return department;
+}
+
 /**
  *
  * @param {APIGatewayProxyEvent} event - API Gateway Lambda Proxy Input Format
@@ -18,6 +26,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
     let response: APIGatewayProxyResult;
     let body: any;
     let statusCode = 400;
+    let department = extractDepartment(event.requestContext.authorizer);
     try {
         switch (event.resource) {
             case '/api/documents/{id}': {
@@ -41,13 +50,13 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
             case '/api/documents': {
                 switch (event.httpMethod) {
                     case 'GET':
-                        body = await getDocuments();
+                        body = await getDocuments(department);
                         statusCode = 200;
                         break;
                     case 'POST':
                         if (event.body) {
                             const { keys } = JSON.parse(event.body);
-                            body = await createDocument(keys);
+                            const body = await createDocument(keys, department);
                             statusCode = 200;
                         }
                     default:
@@ -57,8 +66,8 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
             }
 
             case '/api/search': {
-                if (event.queryStringParameters?.keyword) {
-                    body = await search(event.queryStringParameters.keyword);
+                if (event.queryStringParameters?.keyword && event.headers.Authorization) {
+                    body = await search(event.queryStringParameters.keyword, event.headers.Authorization);
                     statusCode = 200;
                 }
             }

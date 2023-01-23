@@ -5,14 +5,14 @@ const logger = new Logger({ serviceName: 'SearchService' });
 
 // Opensearch
 const osClient = new OpenSearchCustomClient();
-const osDomain = String(process.env.OPENSEARCH_DOMAIN);
+const osIndexName = String(process.env.OPENSEARCH_INDEX_NAME);
 
-export async function search(keyword: string) {
+export async function search(keyword: string, token: string) {
     let response: any = {
         count: 0,
     };
     const results: any[] = [];
-    const search = await osClient.search(osDomain, keyword);
+    const search = await osClient.search(osIndexName, keyword, token);
     if (search.statusCode == 200) {
         if (search.body.hits?.hits) {
             const hits = search.body.hits.hits as any[];

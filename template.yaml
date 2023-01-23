@@ -147,7 +147,7 @@ Resources:
             DOCS_TABLE: !Ref DocumentsTable
             OUTPUTS_TABLE: !Ref OutputsTable
             OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
-            OPENSEARCH_DOMAIN: textract
+            OPENSEARCH_INDEX_NAME: ocr-index
         Events:
           SQSJobCompleted:
             Type: SQS
@@ -197,7 +197,9 @@ Resources:
             OUTPUTS_TABLE: !Ref OutputsTable
             DOCS_BUCKET: !Ref DocsToAnalyze
             OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
-            OPENSEARCH_DOMAIN: textract
+            OPENSEARCH_INDEX_NAME: ocr-index
+            IDENTITY_POOL_ID: !Ref IdentityPool
+            USER_POOL_ID: !Ref UserPool
         Events:
           CreateDocumentAPI:
             Type: Api
@@ -334,8 +336,8 @@ Resources:
   OpenSearchDomain:
         Type: AWS::OpenSearchService::Domain
         Properties:
-          DomainName: 'textract'
-          EngineVersion: 'OpenSearch_1.0'
+          DomainName: 'ocr-domain'
+          EngineVersion: 'OpenSearch_1.3'
           ClusterConfig:
             DedicatedMasterEnabled: true
             InstanceCount: 2
@@ -359,21 +361,39 @@ Resources:
                   AWS: !GetAtt ProcessJobCompletionFunctionRole.Arn
                 Action: 'es:*'
                 Resource:
-                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/ocr-domain/*'
               - Effect: 'Allow'
                 Principal:
                   AWS: !GetAtt APIProcessorFunctionRole.Arn
                 Action: 'es:*'
                 Resource:
-                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/ocr-domain/*'
               - Effect: 'Allow'
                 Principal:
-                  AWS: !GetAtt AuthorizedRole.Arn
+                  AWS: !GetAtt AdminUserRole.Arn
                 Action: 'es:*'
                 Resource:
-                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/textract/*'
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/ocr-domain/*'
+              - Effect: 'Allow'
+                Principal:
+                  AWS:
+                    - '*'
+                Action: 'es:ESHttp*'
+                Resource:
+                  - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/ocr-domain/*'
+          NodeToNodeEncryptionOptions:
+            Enabled: true
+          EncryptionAtRestOptions:
+            Enabled: true
+          DomainEndpointOptions:
+            EnforceHTTPS: true
           AdvancedOptions:
             rest.action.multi.allow_explicit_index: true
+          AdvancedSecurityOptions:
+            Enabled: true
+            InternalUserDatabaseEnabled: false
+            MasterUserOptions:
+              MasterUserARN: !GetAtt AdminUserRole.Arn
 
   # IAM Role
   OpenSearchCognitoIamRole:
@@ -444,6 +464,10 @@ Resources:
           - AttributeDataType: String
             Name: email
             Required: false
+          - AttributeDataType: String
+            Name: department
+            Required: false
+            Mutable: true
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
@@ -476,6 +500,23 @@ Resources:
         - ClientId: !Ref UserPoolClient
           ProviderName: !GetAtt UserPool.ProviderName
 
+  # groups
+  AdminUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: 
+      Description: Admin Group
+      RoleArn: !GetAtt AdminUserRole.Arn
+      UserPoolId: !Ref UserPool
+
+  # add users to groups
+  AdminUsersToGroup:
+    Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    Properties: 
+      GroupName: !Ref AdminUserGroup
+      Username: !Ref UserPoolUser
+      UserPoolId: !Ref UserPool
+
+  # roles
   # Create a role for unauthorized acces to AWS resources. Very limited access.
   UnAuthorizedRole:
     Type: "AWS::IAM::Role"
@@ -540,7 +581,43 @@ Resources:
                 Action:
                   - "s3:*"
                 Resource: "*"
-  
+
+  AdminUserRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Federated: "cognito-identity.amazonaws.com"
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals: 
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": authenticated
+      Policies:
+        - PolicyName: "CognitoAuthorizedPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                  - "cognito-identity:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "s3:*"
+                Resource: "*" 
+
   # Assigns the roles to the Identity Pool
   IdentityPoolRoleMapping:
     Type: "AWS::Cognito::IdentityPoolRoleAttachment"
@@ -686,6 +763,9 @@ Outputs:
   OpenSearchDomain:
     Description: "Open Search used to search within documents"
     Value: !GetAtt OpenSearchDomain.DomainEndpoint
+  OpenSearchDomainName:
+    Description: "Open Search Domain Name used to search within documents"
+    Value: !Ref OpenSearchDomain
   OpenSearchDashboardUrl:
     Description: "OpenSearch Dashboard URL"
     Value: !Sub

@@ -26,7 +26,7 @@ const s3Client = new S3CustomClient();
 
 // Opensearch
 const osClient = new OpenSearchCustomClient();
-const osIndexName = String(process.env.OPENSEARCH_DOMAIN);
+const osIndexName = String(process.env.OPENSEARCH_INDEX_NAME);
 
 export async function indexDocument(
     documentId: string,
@@ -41,13 +41,17 @@ export async function indexDocument(
             text += line.text + ' ';
         }
     }
-    const document = {
-        documentId,
-        bucketName,
-        documentName,
-        content: text,
-    };
-    return osClient.index(osIndexName, documentId, document);
+    const document = await documentsDataStore.getDocument(documentId);
+    if (document) {
+        const body = {
+            documentId,
+            bucketName,
+            documentName,
+            content: text,
+            department: document.department,
+        };
+        return osClient.index(osIndexName, documentId, body);
+    }
 }
 
 export async function storeForms(documentId: string, bucket: string, textractDocument: TextractDocument) {

@@ -125,3 +125,19 @@ aws cloudformation delete-stack --stack-name ocr-app
 See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
 
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
+
+
+## Setup OpenSearch Fine-grained access control with Cognito
+1. You first have to give access to index documents for Lambda function role. Locate role ARN for Process Job Completion function from cloudformation outputs.
+2. Provide backend role mapping in OpenSearch Security settings
+
+
+## Upload Website Content to S#
+1. Build the app
+```bash
+npm run build:prod
+```
+2. Sync local folder with S3 bucket
+```bash
+aws s3 sync www $frontend_bucket_name
+```
