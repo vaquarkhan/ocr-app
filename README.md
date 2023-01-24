@@ -1,37 +1,38 @@
-# ocr-app
+# Document Understanding Solution
+
+This solution leverages the power of Amazon Textract, Amazon Comprehend , Amazon Elasticsearch to provide digitization, domain-specific data discovery, redaction controls , structural component extraction and other document processing & understanding capaibilities.
+
+![img](./assets/images/website-preview.png)
+
+## Architecture Diagram
+
+![img](./assets/images/arch.png)
+
+**Note**
+
+> Current document formats supported: **PDF,JPG,PNG**
+> Current maximum document file size supported: **150MB**
+> Current concurrent document uploads (via UI) supported: **100**
+
+
+## Folder Structure
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
-- hello-world - Code for the application's Lambda function written in TypeScript.
+- functions - Code for the application's Lambda functions written in TypeScript.
 - events - Invocation events that you can use to invoke the function.
-- hello-world/tests - Unit tests for the application code. 
 - template.yaml - A template that defines the application's AWS resources.
 
 The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
-If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
-The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
-
-* [CLion](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [GoLand](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [IntelliJ](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [WebStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [Rider](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PhpStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PyCharm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [RubyMine](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [DataGrip](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/welcome.html)
-* [Visual Studio](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/welcome.html)
-
-## Deploy the sample application
+## Deployment
 
 The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
 
 To use the SAM CLI, you need the following tools.
 
 * SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-* Node.js - [Install Node.js 14](https://nodejs.org/en/), including the NPM package management tool.
+* Node.js - [Install Node.js 19](https://nodejs.org/en/), including the NPM package management tool.
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
 To build and deploy your application for the first time, run the following in your shell:
@@ -41,15 +42,46 @@ sam build
 sam deploy --guided
 ```
 
-The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
+The first command will build the source of your application. The second command will package and deploy your application to AWS.
 
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
-* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
-* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
 
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
+## Stack Outputs
+
+Once the SAM deploy command completes, you will find a list of useful properties displayed. 
+
+* *Website* - URL to access the UI part
+* *OpenSearchDashboardUrl* - OpenSeach Dashboard url
+
+## Setup OpenSearch Fine-grained access control with Cognito
+
+1. You first have to give access to index documents for Lambda function role. Locate role ARN for Process Job Completion function from cloudformation outputs.
+2. Provide backend role mapping in OpenSearch Security settings
+
+
+## Upload Website Content to S3
+
+1. Build the app
+```bash
+npm run build:prod
+```
+2. Sync local folder with S3 bucket
+```bash
+aws s3 sync www $frontend_bucket_name
+```
+
+## Cost
+
+- As you deploy this sample application, it creates different resources (Amazon S3 bucket, Amazon SQS Queue, Amazon DynamoDB table, Elasticsearch (and potenitally Amazon Kendra) clsuter(s) and AWS Lambda functions etc.). When you analyze documents, it calls different APIs (Amazon Textract, Amazon Comprehend) in your AWS account. You will get charged for all the API calls made as part of the analysis as well as any AWS resources created as part of the deployment. To avoid any recurring charges, delete stack.
+
+> Follow [Cleanup](#cleanup) section to remove stack
+
+
+- You are responsible for the cost of the AWS services used while running this reference
+  deployment. The solution consists of some resources that have to be paid by the hour/size
+  such as Amazon Elasticsearch, Amazon Kendra and Amazon S3 while others are serverless technologies where
+  costs are incurred depending on the number of requests.
+  The approximate cost for the solution for 100 documents/day comes under $20/day. For accurate and most up-to-date pricing information, refer [AWS Pricing](https://aws.amazon.com/pricing/)
+
 
 ## Use the SAM CLI to build and test locally
 
@@ -126,18 +158,14 @@ See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-applica
 
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
 
+## License
 
-## Setup OpenSearch Fine-grained access control with Cognito
-1. You first have to give access to index documents for Lambda function role. Locate role ARN for Process Job Completion function from cloudformation outputs.
-2. Provide backend role mapping in OpenSearch Security settings
+This project is licensed under the Apache-2.0 License.
+You may not use this file except in compliance with the License. A copy of the License is located at
+http://www.apache.org/licenses/
 
+## Additional Notes
 
-## Upload Website Content to S#
-1. Build the app
-```bash
-npm run build:prod
-```
-2. Sync local folder with S3 bucket
-```bash
-aws s3 sync www $frontend_bucket_name
-```
+The intended use is for users to use this application as a reference architecture to build production ready systems for their use cases. Users will deploy this solution in their own AWS accounts and own the deployment, maintenance and updates of their applications based on this solution.
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
