@@ -56,7 +56,7 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
                     case 'POST':
                         if (event.body) {
                             const { keys } = JSON.parse(event.body);
-                            const body = await createDocument(keys, department);
+                            body = await createDocument(keys, department);
                             statusCode = 200;
                         }
                     default:
@@ -79,11 +79,6 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
         response = {
             statusCode,
             body: JSON.stringify(body),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-            },
         };
     } catch (error) {
         // Error handling
@@ -92,11 +87,6 @@ export const lambdaHandler = async (event: APIGatewayEvent, context: Context): P
             body: JSON.stringify({
                 message: 'some error happened',
             }),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-            },
         };
         logger.error('some error happened', { error });
     }
