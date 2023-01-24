@@ -1,6 +1,6 @@
 # Document Understanding Solution
 
-This solution leverages the power of Amazon Textract, Amazon Comprehend , Amazon Elasticsearch to provide digitization, domain-specific data discovery, redaction controls , structural component extraction and other document processing & understanding capaibilities.
+This solution leverages the power of Amazon Textract, Amazon Comprehend, Amazon Elasticsearch to provide digitization, domain-specific data discovery, redaction controls, structural component extraction and other document processing & understanding capaibilities.
 
 ![img](./assets/images/website-preview.png)
 
@@ -20,6 +20,7 @@ This solution leverages the power of Amazon Textract, Amazon Comprehend , Amazon
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
 - functions - Code for the application's Lambda functions written in TypeScript.
+- layers - Code for the application's Lambda layers written in TypeScript.
 - events - Invocation events that you can use to invoke the function.
 - template.yaml - A template that defines the application's AWS resources.
 
@@ -44,6 +45,7 @@ sam deploy --guided
 
 The first command will build the source of your application. The second command will package and deploy your application to AWS.
 
+> Once deployed, you should recieve an email titled *Your temporary password* that contains master username and a temporary password
 
 ## Stack Outputs
 
@@ -54,9 +56,14 @@ Once the SAM deploy command completes, you will find a list of useful properties
 
 ## Setup OpenSearch Fine-grained access control with Cognito
 
-1. You first have to give access to index documents for Lambda function role. Locate role ARN for Process Job Completion function from cloudformation outputs.
-2. Provide backend role mapping in OpenSearch Security settings
+You first have to give access to index documents for Lambda function. 
 
+1. Locate role ARN for Process Job Completion function from Cloudformation outputs named *ProcessJobCompletionFunctionIamRole*.
+2. Go to OpenSeach Dashboard and sign in with master user
+3. From Security > Roles > all_access > Mapped users
+ provide backend role mapping of the function role
+
+> More details on Fine-grained access for OpenSearch can be found [here](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html)
 
 ## Upload Website Content to S3
 
