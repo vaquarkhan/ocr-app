@@ -40,6 +40,10 @@ To build and deploy your application for the first time, run the following in yo
 
 ```bash
 sam build
+
+or
+sam build --use-container
+
 sam deploy --guided
 ```
 
